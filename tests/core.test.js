@@ -1,0 +1,13 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {catalog} from '../web/catalog.js';
+import {percentage,status,makeSession,mergeRecords,parseLegacy,toLegacy,validateRecords,validDate} from '../web/core.js';
+const marks=Object.fromEntries(catalog.students.map(s=>[s.id,true]));
+const sample=()=>makeSession([],catalog.routine[0],'06-09-2025',marks);
+test('Catalog preserves the C++ class structure',()=>{assert.equal(catalog.students.length,45);assert.equal(catalog.courses.length,8);assert.equal(catalog.routine.length,23);assert.equal(catalog.courses.find(c=>c.code==='GEEM-1101').totalClasses,32);});
+test('Fixed planned total denominator, not recorded sessions',()=>{const rows=sample();assert.ok(Math.abs(percentage(rows,'C251027','EEE-1121')-100/48)<1e-12);assert.equal(percentage(rows,'C253002','CSE-1121'),0);});
+test('C++ thresholds and cap remain unchanged',()=>{assert.equal(status(85),'Excellent');assert.equal(status(84.99),'Good');assert.equal(status(70),'Good');assert.equal(status(69.99),'Warning');assert.equal(status(60),'Warning');assert.equal(status(59.99),'At Risk');assert.equal(percentage(Array.from({length:60},()=>sample()[0]),'C251027','EEE-1121'),100);});
+test('All present, all absent and individual attendance',()=>{assert.equal(sample().length,45);const mixed={...marks,C253002:false};assert.equal(makeSession([],catalog.routine[0],'06-09-2025',mixed).filter(r=>r.present).length,44);assert.equal(makeSession([],catalog.routine[0],'06-09-2025',Object.fromEntries(catalog.students.map(s=>[s.id,false]))).filter(r=>r.present).length,0);assert.throws(()=>makeSession([],catalog.routine[0],'06-09-2025',{}));});
+test('Reject duplicate even when first student is missing from existing data',()=>{const rows=sample();assert.throws(()=>mergeRecords(rows.slice(1),rows),/already exists/);assert.equal(mergeRecords(rows,makeSession([],catalog.routine[0],'07-09-2025',marks)).length,90);});
+test('Legacy file round trip and invalid rows',()=>{assert.deepEqual(parseLegacy(toLegacy(sample())),sample());assert.throws(()=>parseLegacy('2,2025-3-3,CSE-1121,0'));assert.throws(()=>validateRecords([{...sample()[0],studentId:'unknown'}]));assert.throws(()=>validateRecords([...sample(),sample()[0]]));assert.throws(()=>validateRecords([{...sample()[0],present:'1'}]));});
+test('Calendar validation and manual rescheduled dates',()=>{assert.ok(validDate('29-02-2024'));assert.ok(!validDate('29-02-2025'));assert.ok(!validDate('31-04-2025'));assert.equal(makeSession([],catalog.routine[0],'07-09-2025',marks).length,45);});

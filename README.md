@@ -1,3 +1,17 @@
+# Rollcall — Attendance Tracking
+
+A modern web interface and authenticated SQLite backend built around the original C++ attendance rules.
+
+- Frontend: `web/` — dashboard, attendance register, student profiles, timetable and reports.
+- Backend: `server/` — persistent storage and authenticated API.
+- Deployment: GitHub Pages workflow included.
+- [Web setup, data migration and backend guide](WEB_GUIDE.md)
+- Tests: `npm test` (Node.js 24+).
+
+The original C++ project is preserved below.
+
+---
+
 Attendance Tracking System
 
 A C++ based console application designed to manage student attendance records efficiently. The system allows attendance to be recorded for scheduled classes, stored in a file, and viewed as individual or complete attendance reports.
@@ -273,3 +287,4 @@ Tahasanur Karim
 Computer Science & Engineering Student
 
 Email: tahasanurkarim@gmail.com
+
