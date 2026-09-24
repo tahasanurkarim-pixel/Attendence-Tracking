@@ -245,10 +245,16 @@ No server-side attendance data exists yet, so there is no migration to reverse.
 
 ## Known risks
 
-1. **Vercel function detection with `buildCommand: null`** — the current
-   `vercel.json` disables the build step for the static site. Whether `api/`
-   functions are still detected and bundled must be confirmed empirically before
-   anything else is built.
+1. **Resolved — Vercel function detection and routing.** Confirmed empirically
+   on 2026-09-25: with `buildCommand: null` and `framework: null`, Vercel still
+   detects and bundles `api/` functions, and `export default function handler(
+   req, res)` is accepted. A single function reachable at every `/api/*` path
+   uses the rewrite `{"source": "/api/:path*", "destination": "/api"}`. The
+   rewrite preserves the original request pathname on `req.url` (the `:path*`
+   capture is appended as a `path` query parameter, but the pathname is intact),
+   so the handler routes on `new URL(req.url, 'http://localhost').pathname`.
+   Static routes are unaffected: the root still returns 200 and unknown paths
+   still return 404.
 2. **Neon free-tier connection limits** under concurrent serverless invocations.
    The serverless driver pools over HTTP, which should be sufficient, but this is
    unverified until load exists.
