@@ -246,15 +246,17 @@ No server-side attendance data exists yet, so there is no migration to reverse.
 ## Known risks
 
 1. **Resolved — Vercel function detection and routing.** Confirmed empirically
-   on 2026-09-25: with `buildCommand: null` and `framework: null`, Vercel still
-   detects and bundles `api/` functions, and `export default function handler(
-   req, res)` is accepted. A single function reachable at every `/api/*` path
-   uses the rewrite `{"source": "/api/:path*", "destination": "/api"}`. The
-   rewrite preserves the original request pathname on `req.url` (the `:path*`
-   capture is appended as a `path` query parameter, but the pathname is intact),
-   so the handler routes on `new URL(req.url, 'http://localhost').pathname`.
-   Static routes are unaffected: the root still returns 200 and unknown paths
-   still return 404.
+   on 2026-09-25 with the real single-function layout `api/index.js` and the
+   rewrite `{"source": "/api/:path*", "destination": "/api"}`: with
+   `buildCommand: null` and `framework: null`, Vercel still detects and bundles
+   `api/` functions, and `export default function handler(req, res)` is accepted.
+   The rewrite routes every `/api/*` path — bare `/api`, `/api/health`,
+   `/api/records`, and deeply nested `/api/a/b` — to `api/index.js`, and the
+   original request pathname is preserved on `req.url`: `new URL(req.url,
+   'http://localhost').pathname` returned the exact original path in every case
+   (the `:path*` capture arrives as a `path` query parameter but does not affect
+   the pathname). Static routes are unaffected: `/` returns 200 and unknown
+   paths return 404.
 2. **Neon free-tier connection limits** under concurrent serverless invocations.
    The serverless driver pools over HTTP, which should be sufficient, but this is
    unverified until load exists.
