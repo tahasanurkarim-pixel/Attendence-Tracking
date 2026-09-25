@@ -18,12 +18,13 @@ GitHub Pages hosts static files, not a Node process or database. Without a conne
 | 8 courses, 23 periods | Exact titles, totals, times and days |
 | All present / all absent / individual | Register controls |
 | Student + course + date + time slot | Unique key in JS and SQLite |
-| Present ÷ fixed course total × 100 | `web/core.js`, capped at 100% |
-| 85 / 70 / 60 thresholds | Excellent / Good / Warning / At Risk |
+| Present ÷ classes held | **Current attendance**, drives the status badge |
+| Present ÷ fixed course total × 100 | **Semester progress**, capped at 100% |
+| 85 / 70 / 60 thresholds | Excellent / Good / Warning / At Risk, plus "No classes yet" when nothing is recorded |
 | `attendance_data.txt` | Lossless pipe-delimited import/export |
 | Choose day separately from date | Supports rescheduled classes |
 
-The UI also displays **recorded presence**, present entries divided by recorded entries. This is clearly labeled and never replaces the semester score.
+A course's **classes held** is the count of distinct `(date, time slot)` sessions with records. A student left unmarked in a session has no present record for it and is treated as absent; saving a session with unmarked students therefore requires the deliberate "Save as partial" path, and a review dialog states the Present, Absent and Unmarked counts before anything is written.
 
 Correctness improvements: real calendar-date validation, validation of every imported row, duplicate checks for every student (not only the first), all-or-nothing imports, atomic database transactions, and removal of the 2,000-record array ceiling. The C++ file itself is retained as a historical reference. It still has its original record limit.
 
@@ -72,4 +73,4 @@ Duplicate imports return 409; invalid rows return 400. An insert audit records t
 
 ## Testing
 
-`npm test` checks the exact catalog size, denominator semantics, percentage cap, boundary thresholds, bulk and mixed attendance, partial-session duplicates, date validation, file round trips, authentication, origin rejection, transaction rollback, logout and persistence across backend restarts. UI functionality should additionally be checked in a browser before expanding this into an institution-wide deployment.
+`npm test` checks the exact catalog size, current-attendance and semester-progress semantics, the planned-total cap, boundary thresholds, zero-classes-held handling, classes-held counting, partial sessions, bulk and mixed attendance, duplicate rejection, date validation, file round trips, authentication, origin rejection, transaction rollback, logout and persistence across backend restarts. UI functionality should additionally be checked in a browser before expanding this into an institution-wide deployment.

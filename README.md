@@ -62,15 +62,17 @@ Student name
 
 Attended classes
 
-Total classes
+Classes held
 
-Attendance percentage
+Current attendance (present ÷ classes held)
+
+Semester progress (present ÷ planned classes)
 
 Attendance status
 
 3. Attendance Status
 
-The system categorizes attendance percentage as:
+The system categorizes current attendance as:
 
 Percentage
 
@@ -91,6 +93,10 @@ Warning
 Below 60%
 
 At Risk
+
+No classes held yet
+
+No classes yet
 
 4. Weekly Class Routine
 
