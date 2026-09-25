@@ -29,3 +29,19 @@
 .metricswitch button.selected{background:var(--green);color:#fff;border-color:var(--green)}
 @media(max-width:720px){.rosterrow td{padding:14px 12px}.rosterrow .mark{display:flex;width:100%}.mark button{flex:1;min-width:0;font-size:12px}.countstrip{gap:8px;padding:12px}.countstrip .count{flex:1;justify-content:center;font-size:11px}.countstrip .count strong{font-size:16px}}
 @media print{.countstrip,.mark,.rosterrow .chip{display:none!important}}
+
+/* ==== Review step (cycle A) ==== */
+.reviewmeta{padding:0 24px 16px;font-size:13px;color:#4c5847}
+.reviewgrid{display:flex;gap:12px;padding:0 24px 4px}
+.reviewcell{flex:1;border:1px solid var(--line);border-radius:10px;padding:14px;text-align:center;font-size:12px;font-weight:600}
+.reviewcell strong{display:block;font:700 24px 'Manrope',sans-serif;margin-bottom:4px}
+.reviewcell.present{color:#186b3f;border-color:#cfe6d5;background:#f2f9f4}
+.reviewcell.absent{color:#a3232a;border-color:#f0d2d3;background:#fdf4f4}
+.reviewcell.unmarked{color:#8a5a08;border-color:#f2dfb6;background:#fefaf0}
+.namelist{font-size:12px;line-height:1.7;color:#6f7a68;margin:14px 0 0}
+.namelist.warn{color:#8a5a08}
+.reviewactions{display:flex;gap:10px;justify-content:flex-end;margin-top:22px}
+.reviewactions button{min-height:44px}
+.saveactions{display:flex;gap:10px;align-items:center}
+.savebar .secondary{background:#fff;color:#394b31;border-color:#c9d0c2}
+@media(max-width:720px){.reviewgrid{flex-direction:column}.reviewactions{flex-direction:column-reverse}.reviewactions button{width:100%}}
