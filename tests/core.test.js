@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {catalog} from '../web/catalog.js';
-import {heldSessions,statusOf,studentMetrics,markTally,courseMetrics,reportCsv,weekdayName,makeSession,mergeRecords,parseLegacy,toLegacy,validateRecords,validDate} from '../web/core.js';
+import {heldSessions,statusOf,studentMetrics,markTally,courseMetrics,isPartial,reportCsv,weekdayName,makeSession,mergeRecords,parseLegacy,toLegacy,validateRecords,validDate} from '../web/core.js';
 const marks=Object.fromEntries(catalog.students.map(s=>[s.id,true]));
 const saturday=catalog.routine[0];
 const session=(date='06-09-2025',period=saturday,m=marks)=>makeSession([],period,date,m);
@@ -118,3 +118,18 @@ test('Reject duplicate even when first student is missing from existing data',()
 test('Legacy file round trip and invalid rows',()=>{assert.deepEqual(parseLegacy(toLegacy(session())),session());assert.throws(()=>parseLegacy('2,2025-3-3,CSE-1121,0'));assert.throws(()=>validateRecords([{...session()[0],studentId:'unknown'}]));assert.throws(()=>validateRecords([...session(),session()[0]]));assert.throws(()=>validateRecords([{...session()[0],present:'1'}]));});
 
 test('Calendar validation and manual rescheduled dates',()=>{assert.ok(validDate('29-02-2024'));assert.ok(!validDate('29-02-2025'));assert.ok(!validDate('31-04-2025'));assert.equal(makeSession([],saturday,'07-09-2025',marks).length,45);});
+
+test('Partial save records only marked students',()=>{
+ const partial={...marks};delete partial['C253002'];delete partial['C253003'];
+ const rows=makeSession([],saturday,'06-09-2025',partial,{allowPartial:true});
+ assert.equal(rows.length,43);
+ assert.ok(!rows.some(r=>r.studentId==='C253002'));
+ assert.equal(heldSessions(rows,'EEE-1121'),1);
+ assert.equal(isPartial(rows,'EEE-1121','06-09-2025',saturday.startTime),true);
+ assert.equal(isPartial(rows,'EEE-1121','07-09-2025',saturday.startTime),false);
+ assert.equal(isPartial(rows,'EEE-1121','06-09-2025','12:20 PM'),false);
+ assert.throws(()=>makeSession([],saturday,'06-09-2025',partial),/Mark every student/);
+ assert.throws(()=>makeSession([],saturday,'06-09-2025',{}, {allowPartial:true}),/at least one student/);
+ const unmarked=studentMetrics(rows,'C253002','EEE-1121');
+ assert.deepEqual({present:unmarked.present,held:unmarked.held,current:unmarked.current,status:unmarked.status},{present:0,held:1,current:0,status:'At Risk'});
+});

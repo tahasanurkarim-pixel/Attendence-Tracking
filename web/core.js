@@ -71,10 +71,12 @@ export function mergeRecords(existing,incoming) {
   if(clean.some(r=>seen.has(key(r)))) throw Error('Attendance already exists for a student in this session. No records were changed.');
   return [...existing,...clean];
 }
-export function makeSession(existing,period,date,marks) {
+export function makeSession(existing,period,date,marks,{allowPartial=false}={}) {
   if(!catalog.routine.some(p=>p.day===period?.day && p.courseCode===period.courseCode && p.startTime===period.startTime)) throw Error('Choose a scheduled class.');
-  if(catalog.students.some(s=>typeof marks[s.id]!=='boolean')) throw Error('Mark every student before saving.');
-  const rows=catalog.students.map(s=>({studentId:s.id,courseCode:period.courseCode,date,timeSlot:period.startTime,present:marks[s.id]}));
+  const marked=catalog.students.filter(s=>typeof marks[s.id]==='boolean');
+  if(!allowPartial && marked.length!==catalog.students.length) throw Error('Mark every student before saving, or confirm a partial session.');
+  if(allowPartial && !marked.length) throw Error('Mark at least one student before saving.');
+  const rows=marked.map(s=>({studentId:s.id,courseCode:period.courseCode,date,timeSlot:period.startTime,present:marks[s.id]}));
   mergeRecords(existing,rows); return rows;
 }
 export function parseLegacy(text) {
