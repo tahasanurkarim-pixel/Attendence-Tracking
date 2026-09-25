@@ -45,3 +45,22 @@
 .saveactions{display:flex;gap:10px;align-items:center}
 .savebar .secondary{background:#fff;color:#394b31;border-color:#c9d0c2}
 @media(max-width:720px){.reviewgrid{flex-direction:column}.reviewactions{flex-direction:column-reverse}.reviewactions button{width:100%}}
+
+/* ==== Phone ergonomics for the register (cycle A) ==== */
+@media(max-width:720px){
+ .savebar{position:sticky;bottom:0;margin:0 -17px;border-radius:12px 12px 0 0;border-left:0;border-right:0;border-bottom:0;padding:12px 14px calc(12px + env(safe-area-inset-bottom));z-index:30;flex-direction:column;align-items:stretch;gap:10px}
+ .savebar strong{font-size:13px;line-height:1.5}
+ .saveactions{flex-direction:column;gap:8px}
+ .saveactions button{width:100%;min-height:44px;font-size:13px}
+ .tablewrap{padding-bottom:88px}
+ .roster{width:100%}
+ .roster thead{display:none}
+ .roster,.roster tbody,.roster tr,.roster td{display:block;width:auto}
+ .rosterrow{padding:10px 12px;border-bottom:1px solid #eff1e9}
+ .rosterrow td{border-bottom:0;padding:4px 12px}
+ .rosterrow .sl{display:none}
+ .rosterrow .mark{display:flex;width:100%;gap:8px;margin-top:8px}
+ .rosterrow.unmarked{border-left:4px solid #d9a12b;padding-left:8px}
+ .rosterrow.unmarked td:first-child{border-left:0;padding-left:12px}
+ .rosterrow .chip.amber{margin-left:0}
+}
