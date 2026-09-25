@@ -1,12 +1,56 @@
 import { catalog } from './catalog.js';
 export const key = r => [r.studentId,r.courseCode,r.date,r.timeSlot].join('|');
 export const sessionKey = r => [r.courseCode,r.date,r.timeSlot].join('|');
-export function percentage(records,id,code) {
-  const total=catalog.courses.find(c=>c.code===code)?.totalClasses || 0;
-  const attended=records.filter(r=>r.studentId===id && r.courseCode===code && r.present).length;
-  return total ? Math.min(100,attended/total*100) : 0;
+const courseOf = code => catalog.courses.find(c=>c.code===code);
+const markedRows = (records,code,date,timeSlot) => records.filter(r=>r.courseCode===code && r.date===date && r.timeSlot===timeSlot).length;
+
+export function heldSessions(records,code) {
+  return new Set(records.filter(r=>r.courseCode===code).map(r=>r.date+'|'+r.timeSlot)).size;
 }
-export function status(p) { return p>=85?'Excellent':p>=70?'Good':p>=60?'Warning':'At Risk'; }
+export function isPartial(records,code,date,timeSlot) {
+  const marked=markedRows(records,code,date,timeSlot);
+  return marked>0 && marked<catalog.students.length;
+}
+export function statusOf(current) {
+  if(current===null || current===undefined) return 'No classes yet';
+  return current>=85?'Excellent':current>=70?'Good':current>=60?'Warning':'At Risk';
+}
+export function studentMetrics(records,id,code) {
+  const rows=records.filter(r=>r.studentId===id && r.courseCode===code);
+  const present=rows.filter(r=>r.present).length;
+  const held=heldSessions(records,code);
+  const planned=courseOf(code)?.totalClasses || 0;
+  const current=held?Math.min(100,present/held*100):null;
+  const semesterProgress=planned?Math.min(100,present/planned*100):0;
+  return {present,absent:rows.length-present,held,planned,current,semesterProgress,status:statusOf(current)};
+}
+export function courseMetrics(records,code) {
+  const held=heldSessions(records,code);
+  const present=records.filter(r=>r.courseCode===code && r.present).length;
+  const marked=records.filter(r=>r.courseCode===code).length;
+  return {held,present,marked,current:held?Math.min(100,present/(held*catalog.students.length)*100):null};
+}
+export function markTally(marks,students=catalog.students) {
+  let present=0,absent=0,unmarked=0;
+  for(const student of students) {
+    const mark=marks[student.id];
+    if(mark===true) present++;
+    else if(mark===false) absent++;
+    else unmarked++;
+  }
+  return {present,absent,unmarked,total:students.length};
+}
+export function weekdayName(iso) {
+  if(typeof iso!=='string' || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return '';
+  const date=new Date(iso+'T00:00:00');
+  return Number.isNaN(date.getTime())?'':date.toLocaleDateString('en-US',{weekday:'long'});
+}
+export function reportCsv(records,students,courses) {
+  const quote=v=>'"'+String(v).replaceAll('"','""')+'"';
+  const header=['Student ID','Name',...courses.flatMap(c=>[c.code+' current (%)',c.code+' semester (%)'])];
+  const rows=students.map(s=>[s.id,s.name,...courses.flatMap(c=>{const m=studentMetrics(records,s.id,c.code);return [m.current===null?'':m.current.toFixed(1),m.semesterProgress.toFixed(1)];})]);
+  return [header,...rows].map(row=>row.map(quote).join(',')).join('\r\n');
+}
 export function validDate(s) {
   if(typeof s!=='string' || !/^\d{2}-\d{2}-\d{4}$/.test(s)) return false;
   const [d,m,y]=s.split('-').map(Number), dt=new Date(Date.UTC(y,m-1,d));
